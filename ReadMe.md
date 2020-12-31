@@ -15,5 +15,11 @@ Link to all projects:
 ```bash
 cd vagrant/
 vagrant up # it will open the port 80, it requires sudo privilege !
+### Edit the ansible inventory to setup the registry username and password !
+ansible-playbook -i inventory playbook.yml
 ```
 
+If all worked well you can access the following url:
+(http://face-authenticator.default.127.0.0.1.nip.io)
+
+All information on Front-End at (https://github.com/Nightglowie/ECE-big-data-front-end)
