@@ -13,7 +13,6 @@ Link to all projects:
 # To launch the project
 
 ```bash
-cd vagrant/
 vagrant up # it will open the port 80, it requires sudo privilege !
 ### Edit the ansible inventory to setup the registry username and password !
 ansible-playbook -i inventory playbook.yml

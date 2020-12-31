@@ -10,15 +10,16 @@ spec:
         - image: envoyproxy/envoy-alpine:v1.14.1
           name: envoy
           volumeMounts:
-      - name: config-volume
-        subpath: envoy.yaml
-        mountPath: /etc/envoy/envoy.yaml
+          - name: config-volume
+            subpath: envoy.yaml
+            mountPath: /etc/envoy/envoy.yaml
+          ports:
+          - name: http1
+            containerPort: 8080
       volumes:
         - name: config-volume
           configMap:
             name: envoy-configmap
-      ports:
-        - name: http
-          containerPort: 8080
+      
       imagePullSecrets:
         - name: regcred

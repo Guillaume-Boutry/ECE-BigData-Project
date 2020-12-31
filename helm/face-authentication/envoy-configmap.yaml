@@ -4,7 +4,7 @@ metadata:
   name: envoy-configmap
   namespace: default
 data:
-  game.properties: |
+  envoy.yaml: |
     static_resources:
       listeners:
       - name: listener_0

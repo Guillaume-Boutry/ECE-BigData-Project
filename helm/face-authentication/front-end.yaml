@@ -9,5 +9,8 @@ spec:
       containers:
         - image: registry.zouzland.com/front-end:0.0.1
           name: front-end
+          ports:
+          - name: http1
+            containerPort: 80
       imagePullSecrets:
         - name: regcred
