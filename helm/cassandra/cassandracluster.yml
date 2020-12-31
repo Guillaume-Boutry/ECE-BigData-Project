@@ -1,0 +1,35 @@
+apiVersion: "db.orange.com/v1alpha1"
+kind: "CassandraCluster"
+metadata:
+  name: cassandra-face-authent
+  labels:
+    cluster: face-authent
+spec:
+  cassandraImage: cassandra:3.11
+  bootstrapImage: orangeopensource/cassandra-bootstrap:0.1.4
+  dataCapacity: "2Gi"
+  dataStorageClass: "longhorn"
+  #dataStorageClass: "standard"
+  imagepullpolicy: IfNotPresent
+  hardAntiAffinity: false
+  deletePVC: true
+  autoPilot: false
+  gcStdout: false
+  autoUpdateSeedList: false
+  maxPodUnavailable: 1
+  runAsUser: 999
+  shareProcessNamespace: true
+  resources:
+    requests:
+      cpu: '0.1'
+      memory: '100Mi'
+    limits:
+      cpu: '1'
+      memory: '1Gi'
+  topology:
+    dc:
+      - name: dc1
+        nodesPerRacks: 1
+        rack:
+          - name: rack0
+          #- name: rack1

@@ -1,0 +1,132 @@
+- name: Install packages that allow apt to be used over HTTPS
+  apt: 
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop:
+    - apt-transport-https
+    - curl
+
+
+- name: Add new repositories keys
+  apt_key:
+    url: "{{ item }}"
+    state: present
+  loop:
+    - https://download.docker.com/linux/ubuntu/gpg
+    - https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+- name: Create docker settings directory
+  file:
+    path: /etc/docker
+    state: directory
+
+- name: Write docker settings
+  copy:
+    dest: /etc/docker/daemon.json
+    content: |
+      {
+        "exec-opts": ["native.cgroupdriver=systemd"],
+        "log-driver": "json-file",
+        "log-opts": {
+          "max-size": "100m"
+        },
+        "storage-driver": "overlay2",
+        "storage-opts": [
+          "overlay2.override_kernel_check=true"
+        ]
+      }
+
+- name: Write sysctl config for K8S (kvm bridge specific)
+  copy:
+    dest: /etc/sysctl.d/kubernetes.conf
+    content: |
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.bridge.bridge-nf-call-iptables = 1
+
+- name: Add new apt repositories
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+  loop:
+    - "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable"
+    - "deb https://apt.kubernetes.io/ kubernetes-xenial main" 
+
+- name: Install docker
+  apt: 
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop:
+    - docker-ce
+    - docker-ce-cli 
+    - containerd.io
+  notify:
+    - docker status
+
+
+- name: Add vagrant user to docker group
+  user:
+    name: vagrant
+    group: docker
+
+
+- name: Remove swapfile from /etc/fstab
+  mount:
+    name: "{{ item }}"
+    fstype: swap
+    state: absent
+  loop:
+    - swap
+    - none
+
+
+- name: Disable swap
+  command: swapoff -a
+  when: ansible_swaptotal_mb > 0
+
+- name: Open firewall ports
+  ufw:
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+    rule: allow
+  notify: ufw reloaded
+  with_items:
+    - port: 6443
+      proto: tcp
+    - port: 2379:2380
+      proto: tcp
+    - port: 10250
+      proto: tcp
+    - port: 10251
+      proto: tcp
+    - port: 10252
+      proto: tcp
+    - port: 10255
+      proto: tcp
+
+- name: Install Kubernetes binaries
+  apt: 
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop:
+    - kubeadm 
+    - kubelet 
+    - kubectl
+
+- name: Configure node ip
+  lineinfile:
+    path: '/etc/systemd/system/kubelet.service.d/10-kubeadm.conf'
+    line: 'Environment="KUBELET_EXTRA_ARGS=--node-ip={{ ansible_eth1.ipv4.address }}"'
+    regexp: 'KUBELET_EXTRA_ARGS='
+    insertafter: '\[Service\]'
+    state: present
+  notify:
+    - restart kubelet
+
+- name: Install ISCI
+  apt: 
+    name: open-iscsi
+    state: present
+    update_cache: yes

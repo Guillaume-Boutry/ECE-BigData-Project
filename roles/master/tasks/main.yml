@@ -1,0 +1,96 @@
+- name: Initialize the Kubernetes cluster using kubeadm
+  command: kubeadm init --apiserver-advertise-address="{{ ansible_eth1.ipv4.address }}" --apiserver-cert-extra-sans="{{ ansible_eth1.ipv4.address }}"  --node-name="{{ node_name }}" --pod-network-cidr="10.244.0.0/16"
+
+- name: Generate join command
+  command: kubeadm token create --print-join-command
+  register: join_command
+
+- name: Copy join command to local file
+  become: false
+  local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join-command"
+
+
+- name: Create .kube directory
+  file:
+    path: /home/vagrant/.kube
+    state: directory
+    owner: vagrant
+    group: vagrant
+
+- name: Copying kubeconfig
+  copy:
+    remote_src: yes
+    src: /etc/kubernetes/admin.conf
+    dest: /home/vagrant/.kube/config
+    mode: 0700
+
+- name: Changing kubeconfig ownership
+  file:
+    path: /home/vagrant/.kube/config
+    owner: vagrant
+    group: vagrant
+
+
+- name: Download kubens & helm3
+  unarchive:
+    src: "{{ item }}"
+    remote_src: yes
+    mode: 0755
+    dest: /tmp
+  loop:
+    - https://github.com/ahmetb/kubectx/releases/download/v0.9.1/kubens_v0.9.1_linux_x86_64.tar.gz
+    - https://get.helm.sh/helm-v3.4.1-linux-amd64.tar.gz
+
+- name: Install kubens & helm3
+  copy:
+    src: "{{ item }}"
+    remote_src: yes
+    mode: 0755
+    dest: /usr/local/bin
+  loop:
+    - /tmp/kubens
+    - /tmp/linux-amd64/helm
+
+
+- name: Install flannel pod network
+  become: false
+  command: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+- name: Enable scheduling on master
+  become: false
+  command: kubectl taint node {{node_name}} node-role.kubernetes.io/master:NoSchedule-
+
+- name: Copy k8s services install files
+  copy:
+    src: helm/
+    dest: /tmp/helm
+    owner: vagrant
+    mode: 0744
+
+- name: Deploy Knative-Serving
+  become: false
+  shell: 
+    cmd: "./serving.sh"
+    chdir: "/tmp/helm"
+
+- name: Deploy Longhorn
+  become: false
+  shell: 
+    cmd: "./longhorn.sh"
+    chdir: "/tmp/helm"
+
+
+- name: Deploy Cassandra
+  become: false
+  shell: 
+    cmd: "./cassandra.sh"
+    chdir: "/tmp/helm"
+  
+- name: Deploy face-authenticator
+  become: false
+  shell: 
+    cmd: "./deploy-face-authenticator.sh"
+    chdir: "/tmp/helm"
+  environment:
+    DOCKER_USERNAME: "{{docker_user}}"
+    DOCKER_PASSWORD: "{{docker_pass}}"

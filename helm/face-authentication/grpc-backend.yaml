@@ -1,0 +1,21 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: grpc-backend
+  namespace: default
+spec:
+  template:
+    spec:
+      containers:
+        - image: registry.zouzland.com/grpc-backend:0.0.25
+          name: grpc-backend
+          env:
+            - name: K_SINK_ENROLL
+              value: http://enroller.default
+            - name: K_SINK_AUTHENTICATE
+              value: http://authenticator.default
+          ports:
+            - name: h2c
+              containerPort: 9000
+      imagePullSecrets:
+        - name: regcred
