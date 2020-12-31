@@ -9,8 +9,11 @@ kubectl apply -f face-authentication/authenticator.yaml
 sleep 5
 kubectl apply -f face-authentication/grpc-backend.yaml
 sleep 5
-kubectl wait ksvc data-controller--all --timeout=-1s --for=condition=Ready
-kubectl wait ksvc enroller --all --timeout=-1s --for=condition=Ready
-kubectl wait ksvc authenticator --all --timeout=-1s --for=condition=Ready
-kubectl wait ksvc grpc-backend --all --timeout=-1s --for=condition=Ready
+kubectl apply -f face-authentication/front-end.yaml
+sleep 5
+kubectl apply -f face-authentication/envoy-configmap.yaml
+sleep 5
+kubectl apply -f face-authentication/envoy.yaml
+sleep 5
+kubectl wait ksvc --all --timeout=-1s --for=condition=Ready
 echo "Services ready"

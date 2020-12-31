@@ -1,6 +1,0 @@
-crds=$(microk8s kubectl get crd | tail -n +3 | cut -f 1 -d " ")
-
-for crd in $crds
-do
-microk8s kubectl delete crd/$crd --all-namespaces &
-done
