@@ -83,7 +83,7 @@ If you use another picture you can see that it doesn't work.
 
 # From inside cluster
 
-If everything is set up properly you should be able to connect to (http://face-authenticator.default.127.0.0.1.nip.io)
+If everything is set up properly you should be able to connect to (http://front-end.default.127.0.0.1.nip.io/)
 
 ![web9](/images/from-kluster.png)
 
@@ -100,4 +100,4 @@ Link to all projects:
 
 
 If all worked well you can access the following url:
-(http://face-authenticator.default.127.0.0.1.nip.io)
+(http://front-end.default.127.0.0.1.nip.io/)
