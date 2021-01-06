@@ -19,6 +19,6 @@ ansible-playbook -i inventory playbook.yml
 ```
 
 If all worked well you can access the following url:
-(http://face-authenticator.default.127.0.0.1.nip.io)
+(http://front-end.default.127.0.0.1.nip.io/)
 
 All information on Front-End at (https://github.com/Nightglowie/ECE-big-data-front-end)
